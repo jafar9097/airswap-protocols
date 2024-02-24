@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/INoReturnERC20.sol";
 import "./interfaces/ISwapERC20.sol";
+import "../libraries/SoladySafeTransferLib.sol";
+import "../libraries/SolmateSafeTransferLib.sol";
 
 /**
  * @title AirSwap: Atomic ERC20 Token Swap
@@ -272,25 +274,93 @@ contract SwapERC20 is ISwapERC20, Ownable, EIP712 {
     }
 
     // Transfer token from sender to signer
-    INoReturnERC20(senderToken).transferFrom(
+
+    // CURRENT IMPLEMENTATION
+
+    // INoReturnERC20(senderToken).transferFrom(
+    //   msg.sender,
+    //   signerWallet,
+    //   senderAmount
+    // );
+
+    // Transfer token from signer to sender
+
+    // INoReturnERC20(signerToken).transferFrom(
+    //   signerWallet,
+    //   msg.sender,
+    //   signerAmount
+    // );
+
+    // Transfer protocol fee from signer to fee wallet
+
+    // INoReturnERC20(signerToken).transferFrom(
+    //   signerWallet,
+    //   protocolFeeWallet,
+    //   (signerAmount * protocolFeeLight) / FEE_DIVISOR
+    // );
+
+    // SAFETRANSFERFROM
+    // IERC20(senderToken).safeTransferFrom(
+    //   msg.sender,
+    //   signerWallet,
+    //   senderAmount
+    // );
+
+    // IERC20(signerToken).safeTransferFrom(
+    //   signerWallet,
+    //   msg.sender,
+    //   signerAmount
+    // );
+
+    // IERC20(signerToken).safeTransferFrom(
+    //   signerWallet,
+    //   protocolFeeWallet,
+    //   (signerAmount * protocolFeeLight) / FEE_DIVISOR
+    // );
+
+    // SOLADY SAFETRANSFER
+    SoladySafeTransferLib.safeTransferFrom(
+      senderToken,
       msg.sender,
       signerWallet,
       senderAmount
     );
 
-    // Transfer token from signer to sender
-    INoReturnERC20(signerToken).transferFrom(
+    SoladySafeTransferLib.safeTransferFrom(
+      signerToken,
       signerWallet,
       msg.sender,
       signerAmount
     );
 
-    // Transfer protocol fee from signer to fee wallet
-    INoReturnERC20(signerToken).transferFrom(
+    SoladySafeTransferLib.safeTransferFrom(
+      signerToken,
       signerWallet,
       protocolFeeWallet,
       (signerAmount * protocolFeeLight) / FEE_DIVISOR
     );
+
+    // SOLEMATE SAFETRANSFER
+    // SolmateSafeTransferLib.safeTransferFrom(
+    //   ERC20(senderToken),
+    //   msg.sender,
+    //   signerWallet,
+    //   senderAmount
+    // );
+
+    // SolmateSafeTransferLib.safeTransferFrom(
+    //   ERC20(signerToken),
+    //   signerWallet,
+    //   msg.sender,
+    //   signerAmount
+    // );
+
+    // SolmateSafeTransferLib.safeTransferFrom(
+    //   ERC20(signerToken),
+    //   signerWallet,
+    //   protocolFeeWallet,
+    //   (signerAmount * protocolFeeLight) / FEE_DIVISOR
+    // );
 
     // Emit event
     emit SwapERC20(nonce, signerWallet);
