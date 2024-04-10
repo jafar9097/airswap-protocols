@@ -307,6 +307,52 @@ describe('Staking Unit', () => {
 
       expect(userStake.balance).to.equal(101)
     })
+
+    it('Does not reduce the staking time by staking and unstaking 1 AST', async () => {
+      await token.mock.transferFrom.returns(true)
+      await token.mock.transfer.returns(true)
+      const block0 = await ethers.provider.getBlock()
+
+      // 100k AST staked
+      const stakingAmount = BigInt(1000000 * 10 ** 18)
+      await staking.connect(account1).stake(stakingAmount.toString())
+
+      // move 10 weeks forward
+      const newTimeStamp = 10 * 7 * 24 * 60 * 60
+      await ethers.provider.send('evm_mine', [block0.timestamp + newTimeStamp])
+
+      const stakesBefore = await staking
+        .connect(account1)
+        .stakes(account1.address)
+      const availableBefore = await staking.available(account1.address)
+
+      //Stake 1e1 sats
+      await staking.connect(account1).stake('1')
+      await staking.connect(account1).unstake('1')
+
+      const stakesAfter = await staking
+        .connect(account1)
+        .stakes(account1.address)
+      const availableAfter = await staking.available(account1.address)
+
+      expect(stakesBefore.balance).to.equal(stakesAfter.balance)
+      expect(availableBefore).to.equal(availableAfter)
+
+      // const userStake = await staking.connect(account1).stakes(account1.address)
+
+      // const blockNewTime = await ethers.provider.getBlockNumber()
+      // const blockNewTimeInfo = await ethers.provider.getBlock(blockNewTime)
+
+      // expect(userStake.balance).to.equal(220)
+
+      // check if timestamp was updated appropriately
+      // const diff = BN.from(blockNewTimeInfo.timestamp).sub(block0.timestamp)
+      // const product = BN.from(120).mul(diff)
+      // const quotient = product.div(BN.from(220))
+      // // + 1 because number rounds up to nearest whole
+      // const sum = BN.from(block0.timestamp).add(BN.from(quotient)).add(1)
+      // expect(userStake.start).to.equal(sum)
+    })
   })
 
   describe('Unstake', async () => {
